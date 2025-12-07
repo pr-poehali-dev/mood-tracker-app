@@ -25,6 +25,22 @@ const Calendar = () => {
     angry: '😤',
   };
 
+  const moodLabels: Record<string, string> = {
+    happy: 'Радостное',
+    calm: 'Спокойное',
+    sad: 'Грустное',
+    anxious: 'Тревожное',
+    angry: 'Раздражённое',
+  };
+
+  const moodColors: Record<string, string> = {
+    happy: 'bg-green-100 text-green-700',
+    calm: 'bg-blue-100 text-blue-700',
+    sad: 'bg-gray-100 text-gray-700',
+    anxious: 'bg-yellow-100 text-yellow-700',
+    angry: 'bg-red-100 text-red-700',
+  };
+
   useEffect(() => {
     loadEntries();
   }, []);
@@ -60,6 +76,35 @@ const Calendar = () => {
 
   const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentMonth);
   const monthName = currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+
+  const getMonthStats = () => {
+    const monthEntries = entries.filter((e) => 
+      e.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)
+    );
+
+    const moodCounts: Record<string, number> = {
+      happy: 0,
+      calm: 0,
+      sad: 0,
+      anxious: 0,
+      angry: 0,
+    };
+
+    monthEntries.forEach((entry) => {
+      if (entry.mood in moodCounts) {
+        moodCounts[entry.mood]++;
+      }
+    });
+
+    const total = monthEntries.length;
+    const mostCommonMood = total > 0 
+      ? Object.entries(moodCounts).reduce((a, b) => (b[1] > a[1] ? b : a))[0]
+      : null;
+
+    return { moodCounts, total, mostCommonMood };
+  };
+
+  const stats = getMonthStats();
 
   const changeMonth = (direction: number) => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + direction, 1));
@@ -197,6 +242,61 @@ const Calendar = () => {
             )}
           </Card>
         </div>
+
+        {/* Statistics */}
+        {stats.total > 0 && (
+          <Card className="mt-6 p-6 animate-fade-in">
+            <h2 className="text-2xl font-medium mb-6 text-gray-800">Статистика за месяц</h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Most Common Mood */}
+              <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
+                <p className="text-sm text-gray-600 mb-2">Самое частое настроение</p>
+                <div className="text-6xl mb-2">{stats.mostCommonMood && moodEmojis[stats.mostCommonMood]}</div>
+                <p className="text-lg font-medium text-gray-800">
+                  {stats.mostCommonMood && moodLabels[stats.mostCommonMood]}
+                </p>
+              </div>
+
+              {/* Mood Distribution */}
+              <div>
+                <p className="text-sm text-gray-600 mb-4">Распределение настроений</p>
+                <div className="space-y-3">
+                  {Object.entries(stats.moodCounts)
+                    .filter(([_, count]) => count > 0)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([mood, count]) => {
+                      const percentage = Math.round((count / stats.total) * 100);
+                      return (
+                        <div key={mood}>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl">{moodEmojis[mood]}</span>
+                              <span className="text-sm text-gray-700">{moodLabels[mood]}</span>
+                            </div>
+                            <span className="text-sm font-medium text-gray-600">{percentage}%</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${moodColors[mood].split(' ')[0]}`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+
+            {/* Total Count */}
+            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+              <p className="text-gray-600">
+                Всего записей: <span className="font-medium text-gray-800">{stats.total}</span> из {daysInMonth} дней
+              </p>
+            </div>
+          </Card>
+        )}
 
         {/* Recent Entries */}
         {entries.length > 0 && (
