@@ -106,6 +106,70 @@ const Calendar = () => {
 
   const stats = getMonthStats();
 
+  const getWeeklyTrends = () => {
+    const monthEntries = entries.filter((e) => 
+      e.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)
+    );
+
+    const weeks: { weekNum: number; entries: MoodEntry[] }[] = [];
+    const weekMap = new Map<number, MoodEntry[]>();
+
+    monthEntries.forEach((entry) => {
+      const date = new Date(entry.date);
+      const weekNum = Math.ceil(date.getDate() / 7);
+      if (!weekMap.has(weekNum)) {
+        weekMap.set(weekNum, []);
+      }
+      weekMap.get(weekNum)?.push(entry);
+    });
+
+    weekMap.forEach((entries, weekNum) => {
+      weeks.push({ weekNum, entries });
+    });
+
+    return weeks.sort((a, b) => a.weekNum - b.weekNum);
+  };
+
+  const weeklyTrends = getWeeklyTrends();
+
+  const exportToPDF = () => {
+    const monthEntries = entries.filter((e) => 
+      e.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)
+    );
+
+    let content = `Дневник эмоций - ${monthName}\n\n`;
+    content += `Статистика:\n`;
+    content += `Всего записей: ${stats.total}\n`;
+    if (stats.mostCommonMood) {
+      content += `Самое частое настроение: ${moodLabels[stats.mostCommonMood]}\n`;
+    }
+    content += `\nРаспределение настроений:\n`;
+    Object.entries(stats.moodCounts)
+      .filter(([_, count]) => count > 0)
+      .forEach(([mood, count]) => {
+        const percentage = Math.round((count / stats.total) * 100);
+        content += `${moodLabels[mood]}: ${count} (${percentage}%)\n`;
+      });
+
+    content += `\n\nЗаписи по дням:\n\n`;
+    monthEntries.forEach((entry) => {
+      content += `${formatDate(entry.date)}\n`;
+      content += `Настроение: ${moodLabels[entry.mood]}\n`;
+      content += `Эмоции: ${entry.emotions}\n`;
+      content += `Запомнилось: ${entry.memory}\n\n`;
+    });
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `дневник-эмоций-${year}-${String(month + 1).padStart(2, '0')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const changeMonth = (direction: number) => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + direction, 1));
     setSelectedEntry(null);
@@ -246,7 +310,17 @@ const Calendar = () => {
         {/* Statistics */}
         {stats.total > 0 && (
           <Card className="mt-6 p-6 animate-fade-in">
-            <h2 className="text-2xl font-medium mb-6 text-gray-800">Статистика за месяц</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-medium text-gray-800">Статистика за месяц</h2>
+              <Button
+                onClick={exportToPDF}
+                variant="outline"
+                className="rounded-xl hover:bg-purple-50 hover:border-purple-300"
+              >
+                <Icon name="Download" size={18} className="mr-2" />
+                Экспорт
+              </Button>
+            </div>
             
             <div className="grid md:grid-cols-2 gap-6">
               {/* Most Common Mood */}
@@ -294,6 +368,65 @@ const Calendar = () => {
               <p className="text-gray-600">
                 Всего записей: <span className="font-medium text-gray-800">{stats.total}</span> из {daysInMonth} дней
               </p>
+            </div>
+          </Card>
+        )}
+
+        {/* Weekly Trends */}
+        {weeklyTrends.length > 0 && (
+          <Card className="mt-6 p-6 animate-fade-in">
+            <h2 className="text-2xl font-medium mb-6 text-gray-800">Тренды по неделям</h2>
+            <div className="space-y-6">
+              {weeklyTrends.map((week) => {
+                const weekMoodCounts: Record<string, number> = {
+                  happy: 0,
+                  calm: 0,
+                  sad: 0,
+                  anxious: 0,
+                  angry: 0,
+                };
+                week.entries.forEach((entry) => {
+                  if (entry.mood in weekMoodCounts) {
+                    weekMoodCounts[entry.mood]++;
+                  }
+                });
+                const dominantMood = Object.entries(weekMoodCounts)
+                  .filter(([_, count]) => count > 0)
+                  .reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+
+                return (
+                  <div key={week.weekNum} className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">{moodEmojis[dominantMood]}</div>
+                        <div>
+                          <p className="font-medium text-gray-800">Неделя {week.weekNum}</p>
+                          <p className="text-sm text-gray-600">Доминирующее: {moodLabels[dominantMood]}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-medium text-gray-800">{week.entries.length}</p>
+                        <p className="text-xs text-gray-500">записей</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {Object.entries(weekMoodCounts)
+                        .filter(([_, count]) => count > 0)
+                        .map(([mood, count]) => {
+                          const width = (count / week.entries.length) * 100;
+                          return (
+                            <div
+                              key={mood}
+                              className={`h-2 rounded-full ${moodColors[mood].split(' ')[0]} transition-all duration-500`}
+                              style={{ width: `${width}%` }}
+                              title={`${moodLabels[mood]}: ${count}`}
+                            />
+                          );
+                        })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </Card>
         )}
