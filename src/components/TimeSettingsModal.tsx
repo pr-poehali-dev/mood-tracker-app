@@ -30,7 +30,7 @@ const TimeSettingsModal = ({
       <Card className="max-w-md w-full p-6 border-gray-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-normal text-gray-900">Настройки времени</h2>
-          <button onClick={onClose} className="hover:bg-gray-100 p-1">
+          <button onClick={onClose} className="hover:bg-gray-100 rounded-lg p-1">
             <Icon name="X" size={20} className="text-gray-600" />
           </button>
         </div>
@@ -40,7 +40,7 @@ const TimeSettingsModal = ({
             <label className="text-sm text-gray-600">Ограничить время заполнения</label>
             <button
               onClick={() => onUpdate({ ...timeSettings, enabled: !timeSettings.enabled })}
-              className={`w-12 h-6 border transition-all relative ${
+              className={`w-12 h-6 border rounded-lg transition-all relative ${
                 timeSettings.enabled ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'
               }`}
             >
@@ -60,7 +60,7 @@ const TimeSettingsModal = ({
                   max="23"
                   value={timeSettings.startHour}
                   onChange={(e) => onUpdate({ ...timeSettings, startHour: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:border-gray-400 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-gray-400 focus:outline-none"
                 />
               </div>
               <div>
@@ -71,7 +71,7 @@ const TimeSettingsModal = ({
                   max="23"
                   value={timeSettings.endHour}
                   onChange={(e) => onUpdate({ ...timeSettings, endHour: parseInt(e.target.value) || 23 })}
-                  className="w-full px-3 py-2 border border-gray-200 text-sm focus:border-gray-400 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-gray-400 focus:outline-none"
                 />
               </div>
             </div>

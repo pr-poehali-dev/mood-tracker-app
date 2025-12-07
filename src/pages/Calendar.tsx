@@ -328,7 +328,7 @@ const Calendar = () => {
             
             <div className="grid md:grid-cols-2 gap-6">
               {/* Most Common Mood */}
-              <div className="text-center p-6 bg-gray-50 border border-gray-200">
+              <div className="text-center p-6 bg-gray-50 border border-gray-200 rounded-lg">
                 <p className="text-xs text-gray-500 mb-2">Самое частое</p>
                 <div className="text-5xl mb-2">{stats.mostCommonMood && moodEmojis[stats.mostCommonMood]}</div>
                 <p className="text-sm font-normal text-gray-900">
@@ -354,7 +354,7 @@ const Calendar = () => {
                             </div>
                             <span className="text-xs text-gray-500">{percentage}%</span>
                           </div>
-                          <div className="h-1.5 bg-gray-100 overflow-hidden">
+                          <div className="h-1.5 bg-gray-100 rounded-lg overflow-hidden">
                             <div
                               className="h-full bg-gray-900 transition-all duration-500"
                               style={{ width: `${percentage}%` }}
@@ -399,7 +399,7 @@ const Calendar = () => {
                   .reduce((a, b) => (b[1] > a[1] ? b : a))[0];
 
                 return (
-                  <div key={week.weekNum} className="p-4 bg-gray-50 border border-gray-200">
+                  <div key={week.weekNum} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <div className="text-2xl">{moodEmojis[dominantMood]}</div>

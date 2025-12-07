@@ -47,13 +47,13 @@ const MoodForm = ({
         <div className="absolute right-0 top-0 flex gap-2">
           <button
             onClick={onOpenTimeSettings}
-            className="p-2 hover:bg-gray-100 border border-gray-200 transition-all"
+            className="p-2 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all"
           >
             <Icon name="Clock" size={20} className="text-gray-600" />
           </button>
           <button
             onClick={onOpenQuestionSettings}
-            className="p-2 hover:bg-gray-100 border border-gray-200 transition-all"
+            className="p-2 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all"
           >
             <Icon name="Settings" size={20} className="text-gray-600" />
           </button>
@@ -72,7 +72,7 @@ const MoodForm = ({
               <button
                 key={item.value}
                 onClick={() => onMoodChange(item.value)}
-                className={`p-3 border transition-all ${
+                className={`p-3 border rounded-lg transition-all ${
                   mood === item.value
                     ? 'border-gray-900 bg-gray-50'
                     : 'border-gray-200 bg-white hover:border-gray-400'

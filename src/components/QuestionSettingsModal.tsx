@@ -31,7 +31,7 @@ const QuestionSettingsModal = ({
       <Card className="max-w-md w-full p-6 border-gray-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-normal text-gray-900">Настройки вопросов</h2>
-          <button onClick={onClose} className="hover:bg-gray-100 p-1">
+          <button onClick={onClose} className="hover:bg-gray-100 rounded-lg p-1">
             <Icon name="X" size={20} className="text-gray-600" />
           </button>
         </div>
@@ -41,7 +41,7 @@ const QuestionSettingsModal = ({
             <label className="text-sm text-gray-600">Случайные вопросы</label>
             <button
               onClick={() => onUpdate({ ...questionSettings, useRandom: !questionSettings.useRandom })}
-              className={`w-12 h-6 border transition-all relative ${
+              className={`w-12 h-6 border rounded-lg transition-all relative ${
                 questionSettings.useRandom ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'
               }`}
             >
