@@ -204,18 +204,18 @@ const Calendar = () => {
         <button
           key={day}
           onClick={() => entry && setSelectedEntry(entry)}
-          className={`p-2 rounded-2xl transition-all duration-200 relative ${
+          className={`p-2 border transition-all relative ${
             entry
-              ? 'bg-gradient-to-br from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 hover-scale cursor-pointer'
-              : 'hover:bg-gray-50'
-          } ${isToday ? 'ring-2 ring-purple-400' : ''}`}
+              ? 'border-gray-900 bg-gray-50 cursor-pointer'
+              : 'border-gray-100 hover:border-gray-300'
+          } ${isToday ? 'ring-1 ring-gray-400' : ''}`}
         >
           <div className="text-center">
-            <div className={`text-sm ${entry ? 'font-medium text-gray-800' : 'text-gray-600'}`}>
+            <div className={`text-xs ${entry ? 'font-normal text-gray-900' : 'text-gray-500'}`}>
               {day}
             </div>
             {entry && (
-              <div className="text-2xl mt-1 animate-scale-in">{moodEmojis[entry.mood]}</div>
+              <div className="text-xl mt-1">{moodEmojis[entry.mood]}</div>
             )}
           </div>
         </button>
@@ -227,111 +227,78 @@ const Calendar = () => {
 
   return (
     <>
-      <div className="min-h-screen p-6 pb-24 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      <div className="min-h-screen p-6 pb-24 bg-white">
         <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10 animate-fade-in">
-          <h1 className="text-4xl font-medium mb-3 text-gray-800">Твой календарь эмоций</h1>
-          <p className="text-gray-600">История твоих записей и воспоминаний</p>
+          <h1 className="text-2xl font-normal mb-2 text-gray-900">Календарь</h1>
+          <p className="text-gray-500 text-sm">История твоих записей</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Calendar */}
           <Card className="p-6 animate-fade-in">
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => changeMonth(-1)}
-                  className="rounded-full hover:bg-purple-100"
-                >
-                  <Icon name="ChevronLeft" size={20} />
-                </Button>
-                <h2 className="text-xl font-medium text-gray-800 capitalize">{monthName}</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => changeMonth(1)}
-                  className="rounded-full hover:bg-purple-100"
-                >
-                  <Icon name="ChevronRight" size={20} />
-                </Button>
-              </div>
-              
-              <div className="flex gap-2 justify-center flex-wrap">
-                {[2024, 2025].map((yearOption) => (
-                  <Button
-                    key={yearOption}
-                    variant={year === yearOption ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentMonth(new Date(yearOption, month, 1))}
-                    className="rounded-xl"
-                  >
-                    {yearOption}
-                  </Button>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-6 gap-2">
-                {['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'].map((monthLabel, idx) => (
-                  <Button
-                    key={idx}
-                    variant={month === idx ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setCurrentMonth(new Date(year, idx, 1))}
-                    className={`rounded-xl text-xs ${month === idx ? 'bg-gradient-to-r from-purple-400 to-pink-400' : 'hover:bg-purple-50'}`}
-                  >
-                    {monthLabel}
-                  </Button>
-                ))}
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => changeMonth(-1)}
+                className="hover:bg-gray-100"
+              >
+                <Icon name="ChevronLeft" size={20} />
+              </Button>
+              <h2 className="text-lg font-normal text-gray-900 capitalize">{monthName}</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => changeMonth(1)}
+                className="hover:bg-gray-100"
+              >
+                <Icon name="ChevronRight" size={20} />
+              </Button>
             </div>
 
-            <div className="grid grid-cols-7 gap-2">{renderCalendar()}</div>
+            <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
 
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <p className="text-sm text-gray-500 text-center">
-                Записей в этом месяце:{' '}
-                <span className="font-medium text-gray-700">
-                  {entries.filter((e) => e.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)).length}
-                </span>
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="text-xs text-gray-500 text-center">
+                Записей: <span className="text-gray-900">{entries.filter((e) => e.date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)).length}</span>
               </p>
             </div>
           </Card>
 
           {/* Entry Details */}
-          <Card className="p-6 animate-fade-in">
+          <Card className="p-6 animate-fade-in border-gray-200">
             {selectedEntry ? (
               <div className="space-y-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="text-5xl mb-2">{moodEmojis[selectedEntry.mood]}</div>
-                    <p className="text-sm text-gray-500">{formatDate(selectedEntry.date)}</p>
+                    <div className="text-4xl mb-2">{moodEmojis[selectedEntry.mood]}</div>
+                    <p className="text-xs text-gray-500">{formatDate(selectedEntry.date)}</p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setSelectedEntry(null)}
-                    className="rounded-full hover:bg-gray-100"
+                    className="hover:bg-gray-100"
                   >
-                    <Icon name="X" size={20} />
+                    <Icon name="X" size={18} />
                   </Button>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Эмоции дня</h3>
-                  <p className="text-gray-800 leading-relaxed">{selectedEntry.emotions}</p>
+                  <h3 className="text-xs font-normal text-gray-500 mb-2">Эмоции дня</h3>
+                  <p className="text-sm text-gray-900 leading-relaxed">{selectedEntry.emotions}</p>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Что запомнилось</h3>
-                  <p className="text-gray-800 leading-relaxed">{selectedEntry.memory}</p>
+                  <h3 className="text-xs font-normal text-gray-500 mb-2">Что запомнилось</h3>
+                  <p className="text-sm text-gray-900 leading-relaxed">{selectedEntry.memory}</p>
                 </div>
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center py-12">
-                <Icon name="Calendar" size={48} className="text-gray-300 mb-4" />
-                <p className="text-gray-500">Выбери день в календаре, чтобы увидеть запись</p>
+                <Icon name="Calendar" size={40} className="text-gray-300 mb-4" />
+                <p className="text-sm text-gray-500">Выбери день</p>
               </div>
             )}
           </Card>
@@ -339,32 +306,32 @@ const Calendar = () => {
 
         {/* Statistics */}
         {stats.total > 0 && (
-          <Card className="mt-6 p-6 animate-fade-in">
+          <Card className="mt-6 p-6 animate-fade-in border-gray-200">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-medium text-gray-800">Статистика за месяц</h2>
+              <h2 className="text-lg font-normal text-gray-900">Статистика</h2>
               <Button
                 onClick={exportToPDF}
                 variant="outline"
-                className="rounded-xl hover:bg-purple-50 hover:border-purple-300"
+                className="text-sm border-gray-300 hover:bg-gray-50"
               >
-                <Icon name="Download" size={18} className="mr-2" />
+                <Icon name="Download" size={16} className="mr-2" />
                 Экспорт
               </Button>
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
               {/* Most Common Mood */}
-              <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
-                <p className="text-sm text-gray-600 mb-2">Самое частое настроение</p>
-                <div className="text-6xl mb-2">{stats.mostCommonMood && moodEmojis[stats.mostCommonMood]}</div>
-                <p className="text-lg font-medium text-gray-800">
+              <div className="text-center p-6 bg-gray-50 border border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">Самое частое</p>
+                <div className="text-5xl mb-2">{stats.mostCommonMood && moodEmojis[stats.mostCommonMood]}</div>
+                <p className="text-sm font-normal text-gray-900">
                   {stats.mostCommonMood && moodLabels[stats.mostCommonMood]}
                 </p>
               </div>
 
               {/* Mood Distribution */}
               <div>
-                <p className="text-sm text-gray-600 mb-4">Распределение настроений</p>
+                <p className="text-xs text-gray-500 mb-4">Распределение</p>
                 <div className="space-y-3">
                   {Object.entries(stats.moodCounts)
                     .filter(([_, count]) => count > 0)
@@ -375,14 +342,14 @@ const Calendar = () => {
                         <div key={mood}>
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-xl">{moodEmojis[mood]}</span>
-                              <span className="text-sm text-gray-700">{moodLabels[mood]}</span>
+                              <span className="text-lg">{moodEmojis[mood]}</span>
+                              <span className="text-xs text-gray-700">{moodLabels[mood]}</span>
                             </div>
-                            <span className="text-sm font-medium text-gray-600">{percentage}%</span>
+                            <span className="text-xs text-gray-500">{percentage}%</span>
                           </div>
-                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-gray-100 overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-500 ${moodColors[mood].split(' ')[0]}`}
+                              className="h-full bg-gray-900 transition-all duration-500"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -394,9 +361,9 @@ const Calendar = () => {
             </div>
 
             {/* Total Count */}
-            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-              <p className="text-gray-600">
-                Всего записей: <span className="font-medium text-gray-800">{stats.total}</span> из {daysInMonth} дней
+            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+              <p className="text-xs text-gray-500">
+                Всего: <span className="text-gray-900">{stats.total}</span> из {daysInMonth}
               </p>
             </div>
           </Card>
@@ -404,8 +371,8 @@ const Calendar = () => {
 
         {/* Weekly Trends */}
         {weeklyTrends.length > 0 && (
-          <Card className="mt-6 p-6 animate-fade-in">
-            <h2 className="text-2xl font-medium mb-6 text-gray-800">Тренды по неделям</h2>
+          <Card className="mt-6 p-6 animate-fade-in border-gray-200">
+            <h2 className="text-lg font-normal mb-6 text-gray-900">По неделям</h2>
             <div className="space-y-6">
               {weeklyTrends.map((week) => {
                 const weekMoodCounts: Record<string, number> = {
@@ -425,21 +392,21 @@ const Calendar = () => {
                   .reduce((a, b) => (b[1] > a[1] ? b : a))[0];
 
                 return (
-                  <div key={week.weekNum} className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
+                  <div key={week.weekNum} className="p-4 bg-gray-50 border border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="text-3xl">{moodEmojis[dominantMood]}</div>
+                        <div className="text-2xl">{moodEmojis[dominantMood]}</div>
                         <div>
-                          <p className="font-medium text-gray-800">Неделя {week.weekNum}</p>
-                          <p className="text-sm text-gray-600">Доминирующее: {moodLabels[dominantMood]}</p>
+                          <p className="text-sm font-normal text-gray-900">Неделя {week.weekNum}</p>
+                          <p className="text-xs text-gray-500">{moodLabels[dominantMood]}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-medium text-gray-800">{week.entries.length}</p>
+                        <p className="text-lg font-normal text-gray-900">{week.entries.length}</p>
                         <p className="text-xs text-gray-500">записей</p>
                       </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-0.5">
                       {Object.entries(weekMoodCounts)
                         .filter(([_, count]) => count > 0)
                         .map(([mood, count]) => {
@@ -447,7 +414,7 @@ const Calendar = () => {
                           return (
                             <div
                               key={mood}
-                              className={`h-2 rounded-full ${moodColors[mood].split(' ')[0]} transition-all duration-500`}
+                              className="h-1.5 bg-gray-900 transition-all duration-500"
                               style={{ width: `${width}%` }}
                               title={`${moodLabels[mood]}: ${count}`}
                             />
@@ -464,8 +431,8 @@ const Calendar = () => {
         {/* Recent Entries */}
         {entries.length > 0 && (
           <div className="mt-6 animate-fade-in">
-            <h2 className="text-2xl font-medium mb-4 text-gray-800">Последние записи</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 className="text-lg font-normal mb-4 text-gray-900">Последние записи</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               {entries
                 .slice()
                 .reverse()
@@ -473,14 +440,14 @@ const Calendar = () => {
                 .map((entry) => (
                   <Card
                     key={entry.id}
-                    className="p-4 cursor-pointer hover:shadow-lg transition-all duration-200 hover-scale"
+                    className="p-4 cursor-pointer border-gray-200 hover:border-gray-400 transition-all"
                     onClick={() => setSelectedEntry(entry)}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="text-3xl">{moodEmojis[entry.mood]}</div>
+                      <div className="text-2xl">{moodEmojis[entry.mood]}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-500 mb-1">{formatDate(entry.date)}</p>
-                        <p className="text-sm text-gray-700 line-clamp-2">{entry.memory}</p>
+                        <p className="text-xs text-gray-500 mb-1">{formatDate(entry.date)}</p>
+                        <p className="text-sm text-gray-900 line-clamp-2">{entry.memory}</p>
                       </div>
                     </div>
                   </Card>
