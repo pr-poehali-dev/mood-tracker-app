@@ -13,6 +13,18 @@ interface MoodEntry {
   memory: string;
 }
 
+interface TimeSettings {
+  enabled: boolean;
+  startHour: number;
+  endHour: number;
+}
+
+interface QuestionSettings {
+  useRandom: boolean;
+  question1: string;
+  question2: string;
+}
+
 const Home = () => {
   const [isFormAvailable, setIsFormAvailable] = useState(true);
   const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
@@ -22,6 +34,22 @@ const Home = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [todayEntryId, setTodayEntryId] = useState<string | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showTimeSettings, setShowTimeSettings] = useState(false);
+  const [showQuestionSettings, setShowQuestionSettings] = useState(false);
+  const [timeSettings, setTimeSettings] = useState<TimeSettings>({
+    enabled: false,
+    startHour: 18,
+    endHour: 23,
+  });
+  const [questionSettings, setQuestionSettings] = useState<QuestionSettings>({
+    useRandom: false,
+    question1: 'Какие эмоции отслеживались в течение дня?',
+    question2: 'Что бы ты сегодня хотела запомнить?',
+  });
+  const [currentQuestions, setCurrentQuestions] = useState({
+    question1: 'Какие эмоции отслеживались в течение дня?',
+    question2: 'Что бы ты сегодня хотела запомнить?',
+  });
 
   const moods = [
     { emoji: '😊', label: 'Радостное', value: 'happy' },
@@ -33,9 +61,89 @@ const Home = () => {
 
   useEffect(() => {
     initializeTestData();
+    loadSettings();
     checkSubmission();
     checkNotificationPermission();
+    checkTimeAvailability();
+    const interval = setInterval(checkTimeAvailability, 60000);
+    return () => clearInterval(interval);
   }, []);
+
+  const loadSettings = () => {
+    const savedTimeSettings = localStorage.getItem('timeSettings');
+    const savedQuestionSettings = localStorage.getItem('questionSettings');
+    
+    if (savedTimeSettings) {
+      const parsed = JSON.parse(savedTimeSettings);
+      setTimeSettings(parsed);
+    }
+    
+    if (savedQuestionSettings) {
+      const parsed = JSON.parse(savedQuestionSettings);
+      setQuestionSettings(parsed);
+      if (parsed.useRandom) {
+        generateRandomQuestions();
+      } else {
+        setCurrentQuestions({
+          question1: parsed.question1,
+          question2: parsed.question2,
+        });
+      }
+    }
+  };
+
+  const checkTimeAvailability = () => {
+    const savedTimeSettings = localStorage.getItem('timeSettings');
+    if (!savedTimeSettings) {
+      setIsFormAvailable(true);
+      return;
+    }
+    
+    const settings: TimeSettings = JSON.parse(savedTimeSettings);
+    if (!settings.enabled) {
+      setIsFormAvailable(true);
+      return;
+    }
+    
+    const now = new Date();
+    const hours = now.getHours();
+    const isAvailable = hours >= settings.startHour && hours <= settings.endHour;
+    setIsFormAvailable(isAvailable);
+  };
+
+  const randomQuestions = [
+    ['Какие эмоции были с тобой сегодня?', 'Что запомнилось больше всего?'],
+    ['Что ты чувствовала в течение дня?', 'Какой момент хочешь сохранить?'],
+    ['Какое настроение преобладало?', 'За что ты благодарна сегодня?'],
+    ['Что происходило в твоём внутреннем мире?', 'Чему ты научилась сегодня?'],
+    ['Какие чувства ты испытывала?', 'Что принесло тебе радость?'],
+    ['Как ты себя ощущала сегодня?', 'Что важного произошло?'],
+  ];
+
+  const generateRandomQuestions = () => {
+    const randomIndex = Math.floor(Math.random() * randomQuestions.length);
+    const [q1, q2] = randomQuestions[randomIndex];
+    setCurrentQuestions({ question1: q1, question2: q2 });
+  };
+
+  const saveTimeSettings = () => {
+    localStorage.setItem('timeSettings', JSON.stringify(timeSettings));
+    checkTimeAvailability();
+    setShowTimeSettings(false);
+  };
+
+  const saveQuestionSettings = () => {
+    localStorage.setItem('questionSettings', JSON.stringify(questionSettings));
+    if (questionSettings.useRandom) {
+      generateRandomQuestions();
+    } else {
+      setCurrentQuestions({
+        question1: questionSettings.question1,
+        question2: questionSettings.question2,
+      });
+    }
+    setShowQuestionSettings(false);
+  };
 
   const initializeTestData = () => {
     const testEntries: MoodEntry[] = [
@@ -210,11 +318,42 @@ const Home = () => {
     );
   }
 
+  if (!isFormAvailable) {
+    return (
+      <>
+        <div className="min-h-screen flex items-center justify-center p-6 pb-24 bg-white">
+          <Card className="max-w-md w-full p-8 text-center animate-fade-in border-gray-200">
+            <Icon name="Clock" size={40} className="mx-auto mb-4 text-gray-400" />
+            <h2 className="text-xl font-normal mb-3 text-gray-900">Форма пока недоступна</h2>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Доступна с {timeSettings.startHour}:00 до {timeSettings.endHour}:59
+            </p>
+          </Card>
+        </div>
+        <Navigation />
+      </>
+    );
+  }
+
   return (
     <>
       <div className="min-h-screen p-6 pb-24 bg-white">
         <div className="max-w-2xl mx-auto animate-fade-in">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 relative">
+          <div className="absolute right-0 top-0 flex gap-2">
+            <button
+              onClick={() => setShowTimeSettings(true)}
+              className="p-2 hover:bg-gray-100 border border-gray-200 transition-all"
+            >
+              <Icon name="Clock" size={20} className="text-gray-600" />
+            </button>
+            <button
+              onClick={() => setShowQuestionSettings(true)}
+              className="p-2 hover:bg-gray-100 border border-gray-200 transition-all"
+            >
+              <Icon name="Settings" size={20} className="text-gray-600" />
+            </button>
+          </div>
           <h1 className="text-2xl font-normal mb-2 text-gray-900">Как прошёл твой день?</h1>
           <p className="text-gray-500 text-sm">Поделись своими эмоциями</p>
         </div>
@@ -244,7 +383,7 @@ const Home = () => {
 
           <div>
             <label className="block text-sm font-normal mb-4 text-gray-600">
-              Какие эмоции отслеживались в течение дня?
+              {currentQuestions.question1}
             </label>
             <Textarea
               value={emotions}
@@ -256,7 +395,7 @@ const Home = () => {
 
           <div>
             <label className="block text-sm font-normal mb-4 text-gray-600">
-              Что бы ты сегодня хотела запомнить?
+              {currentQuestions.question2}
             </label>
             <Textarea
               value={memory}
@@ -274,6 +413,126 @@ const Home = () => {
           </Button>
         </Card>
         </div>
+
+        {/* Time Settings Modal */}
+        {showTimeSettings && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6" onClick={() => setShowTimeSettings(false)}>
+            <Card className="max-w-md w-full p-6 border-gray-200" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-normal text-gray-900">Настройки времени</h2>
+                <button onClick={() => setShowTimeSettings(false)} className="hover:bg-gray-100 p-1">
+                  <Icon name="X" size={20} className="text-gray-600" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm text-gray-600">Ограничить время заполнения</label>
+                  <button
+                    onClick={() => setTimeSettings({ ...timeSettings, enabled: !timeSettings.enabled })}
+                    className={`w-12 h-6 border transition-all relative ${
+                      timeSettings.enabled ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white absolute top-0.5 transition-all ${
+                      timeSettings.enabled ? 'right-0.5' : 'left-0.5'
+                    }`} />
+                  </button>
+                </div>
+
+                {timeSettings.enabled && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-2">С (час)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="23"
+                        value={timeSettings.startHour}
+                        onChange={(e) => setTimeSettings({ ...timeSettings, startHour: parseInt(e.target.value) || 0 })}
+                        className="w-full px-3 py-2 border border-gray-200 text-sm focus:border-gray-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-2">До (час)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="23"
+                        value={timeSettings.endHour}
+                        onChange={(e) => setTimeSettings({ ...timeSettings, endHour: parseInt(e.target.value) || 23 })}
+                        className="w-full px-3 py-2 border border-gray-200 text-sm focus:border-gray-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <Button onClick={saveTimeSettings} className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                  Сохранить
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Question Settings Modal */}
+        {showQuestionSettings && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6" onClick={() => setShowQuestionSettings(false)}>
+            <Card className="max-w-md w-full p-6 border-gray-200" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-normal text-gray-900">Настройки вопросов</h2>
+                <button onClick={() => setShowQuestionSettings(false)} className="hover:bg-gray-100 p-1">
+                  <Icon name="X" size={20} className="text-gray-600" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm text-gray-600">Случайные вопросы</label>
+                  <button
+                    onClick={() => setQuestionSettings({ ...questionSettings, useRandom: !questionSettings.useRandom })}
+                    className={`w-12 h-6 border transition-all relative ${
+                      questionSettings.useRandom ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white absolute top-0.5 transition-all ${
+                      questionSettings.useRandom ? 'right-0.5' : 'left-0.5'
+                    }`} />
+                  </button>
+                </div>
+
+                {!questionSettings.useRandom && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-2">Вопрос 1</label>
+                      <Textarea
+                        value={questionSettings.question1}
+                        onChange={(e) => setQuestionSettings({ ...questionSettings, question1: e.target.value })}
+                        className="min-h-[60px] text-sm resize-none border-gray-200 focus:border-gray-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-2">Вопрос 2</label>
+                      <Textarea
+                        value={questionSettings.question2}
+                        onChange={(e) => setQuestionSettings({ ...questionSettings, question2: e.target.value })}
+                        className="min-h-[60px] text-sm resize-none border-gray-200 focus:border-gray-400"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {questionSettings.useRandom && (
+                  <p className="text-xs text-gray-500">Вопросы будут меняться каждый раз случайным образом</p>
+                )}
+
+                <Button onClick={saveQuestionSettings} className="w-full bg-gray-900 hover:bg-gray-800 text-white">
+                  Сохранить
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
       <Navigation />
     </>
