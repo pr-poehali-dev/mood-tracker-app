@@ -180,9 +180,12 @@ const Calendar = () => {
     const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
     // Week day headers
-    weekDays.forEach((day) => {
+    weekDays.forEach((day, idx) => {
+      const isWeekend = idx === 5 || idx === 6;
       days.push(
-        <div key={`header-${day}`} className="text-center text-sm font-medium text-gray-500 py-2">
+        <div key={`header-${day}`} className={`text-center text-sm font-medium py-2 ${
+          isWeekend ? 'text-red-500' : 'text-gray-500'
+        }`}>
           {day}
         </div>
       );
@@ -206,12 +209,16 @@ const Calendar = () => {
           onClick={() => entry && setSelectedEntry(entry)}
           className={`p-2 border transition-all relative ${
             entry
-              ? 'border-gray-900 bg-gray-50 cursor-pointer'
+              ? 'border-gray-900 bg-gray-100 cursor-pointer'
               : 'border-gray-100 hover:border-gray-300'
           } ${isToday ? 'ring-1 ring-gray-400' : ''}`}
         >
           <div className="text-center">
-            <div className={`text-xs ${entry ? 'font-normal text-gray-900' : 'text-gray-500'}`}>
+            <div className={`text-xs ${
+              entry 
+                ? 'font-medium text-gray-900' 
+                : 'text-gray-400'
+            }`}>
               {day}
             </div>
             {entry && (
