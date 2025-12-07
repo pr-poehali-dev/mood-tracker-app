@@ -58,8 +58,8 @@ const MoodForm = ({
             <Icon name="Settings" size={20} className="text-gray-600" />
           </button>
         </div>
-        <h1 className="text-2xl font-normal mb-2 text-gray-900">Как прошёл твой день?</h1>
-        <p className="text-gray-500 text-sm">Поделись своими эмоциями</p>
+        <h1 className="text-2xl font-normal mb-2 text-gray-900">Как прошёл день?</h1>
+        <p className="text-gray-500 text-sm">Поделитесь своими эмоциями</p>
       </div>
 
       <Card className="p-8 space-y-8 border-gray-200">
