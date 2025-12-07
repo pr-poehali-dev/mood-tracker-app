@@ -194,7 +194,7 @@ const Calendar = () => {
     // Empty cells before first day (adjust for Monday start)
     const adjustedStartDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
     for (let i = 0; i < adjustedStartDay; i++) {
-      days.push(<div key={`empty-${i}`} className="p-2" />);
+      days.push(<div key={`empty-${i}`} className="aspect-square" />);
     }
 
     // Calendar days
@@ -207,7 +207,7 @@ const Calendar = () => {
         <button
           key={day}
           onClick={() => entry && setSelectedEntry(entry)}
-          className={`p-2 border transition-all relative ${
+          className={`aspect-square p-2 border rounded-lg transition-all relative flex items-center justify-center ${
             entry
               ? 'border-gray-900 bg-gray-100 cursor-pointer'
               : 'border-gray-100 hover:border-gray-300'
