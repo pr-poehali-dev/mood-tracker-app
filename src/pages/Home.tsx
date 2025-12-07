@@ -19,6 +19,9 @@ const Home = () => {
   const [mood, setMood] = useState('');
   const [emotions, setEmotions] = useState('');
   const [memory, setMemory] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [todayEntryId, setTodayEntryId] = useState<string | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const moods = [
     { emoji: '😊', label: 'Радостное', value: 'happy' },
@@ -30,9 +33,54 @@ const Home = () => {
 
   useEffect(() => {
     checkTimeAndSubmission();
+    checkNotificationPermission();
     const interval = setInterval(checkTimeAndSubmission, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (notificationsEnabled) {
+      scheduleNotification();
+    }
+  }, [notificationsEnabled]);
+
+  const checkNotificationPermission = () => {
+    if ('Notification' in window) {
+      setNotificationsEnabled(Notification.permission === 'granted');
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationsEnabled(permission === 'granted');
+      if (permission === 'granted') {
+        scheduleNotification();
+      }
+    }
+  };
+
+  const scheduleNotification = () => {
+    const now = new Date();
+    const notificationTime = new Date();
+    notificationTime.setHours(18, 0, 0, 0);
+
+    if (now > notificationTime) {
+      notificationTime.setDate(notificationTime.getDate() + 1);
+    }
+
+    const timeUntilNotification = notificationTime.getTime() - now.getTime();
+
+    setTimeout(() => {
+      if (Notification.permission === 'granted') {
+        new Notification('📝 Время записи эмоций!', {
+          body: 'Как прошёл твой день? Поделись своими эмоциями',
+          icon: '/favicon.svg',
+        });
+      }
+      scheduleNotification();
+    }, timeUntilNotification);
+  };
 
   const checkTimeAndSubmission = () => {
     const now = new Date();
@@ -44,6 +92,13 @@ const Home = () => {
     const entries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
     const todayEntry = entries.find((entry: MoodEntry) => entry.date === today);
     setHasSubmittedToday(!!todayEntry);
+    
+    if (todayEntry) {
+      setTodayEntryId(todayEntry.id);
+      setMood(todayEntry.mood);
+      setEmotions(todayEntry.emotions);
+      setMemory(todayEntry.memory);
+    }
   };
 
   const handleSubmit = () => {
@@ -55,21 +110,35 @@ const Home = () => {
     const today = new Date().toISOString().split('T')[0];
     const entries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
     
-    const newEntry: MoodEntry = {
-      id: Date.now().toString(),
-      date: today,
-      mood,
-      emotions,
-      memory,
-    };
-
-    const updatedEntries = [...entries, newEntry];
-    localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+    if (isEditing && todayEntryId) {
+      const updatedEntries = entries.map((entry: MoodEntry) => 
+        entry.id === todayEntryId
+          ? { ...entry, mood, emotions, memory }
+          : entry
+      );
+      localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+      setIsEditing(false);
+    } else {
+      const newEntry: MoodEntry = {
+        id: Date.now().toString(),
+        date: today,
+        mood,
+        emotions,
+        memory,
+      };
+      const updatedEntries = [...entries, newEntry];
+      localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+    }
 
     setHasSubmittedToday(true);
     setMood('');
     setEmotions('');
     setMemory('');
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setHasSubmittedToday(false);
   };
 
   if (!isFormAvailable) {
@@ -79,9 +148,25 @@ const Home = () => {
           <Card className="max-w-md w-full p-8 text-center animate-fade-in">
             <Icon name="Clock" size={48} className="mx-auto mb-4 text-purple-400" />
             <h2 className="text-2xl font-medium mb-3 text-gray-800">Форма пока недоступна</h2>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-gray-600 leading-relaxed mb-6">
               Возвращайся с 18:00 до 23:59, чтобы записать свои эмоции за день
             </p>
+            {!notificationsEnabled && (
+              <Button
+                onClick={requestNotificationPermission}
+                variant="outline"
+                className="rounded-xl hover:bg-purple-50 hover:border-purple-300"
+              >
+                <Icon name="Bell" size={18} className="mr-2" />
+                Включить уведомления
+              </Button>
+            )}
+            {notificationsEnabled && (
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                <Icon name="Check" size={16} />
+                Уведомления включены
+              </div>
+            )}
           </Card>
         </div>
         <Navigation />
@@ -89,16 +174,24 @@ const Home = () => {
     );
   }
 
-  if (hasSubmittedToday) {
+  if (hasSubmittedToday && !isEditing) {
     return (
       <>
         <div className="min-h-screen flex items-center justify-center p-6 pb-24 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
           <Card className="max-w-md w-full p-8 text-center animate-fade-in">
             <Icon name="CheckCircle2" size={48} className="mx-auto mb-4 text-green-400" />
             <h2 className="text-2xl font-medium mb-3 text-gray-800">Запись сохранена</h2>
-            <p className="text-gray-600 leading-relaxed">
-              Спасибо! Ты уже заполнила форму сегодня. Возвращайся завтра, чтобы записать новые эмоции
+            <p className="text-gray-600 leading-relaxed mb-6">
+              Спасибо! Ты уже заполнила форму сегодня.
             </p>
+            <Button
+              onClick={handleEdit}
+              variant="outline"
+              className="rounded-xl hover:bg-purple-50 hover:border-purple-300"
+            >
+              <Icon name="Edit" size={18} className="mr-2" />
+              Редактировать запись
+            </Button>
           </Card>
         </div>
         <Navigation />
@@ -166,7 +259,7 @@ const Home = () => {
             onClick={handleSubmit}
             className="w-full h-12 text-base rounded-2xl bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 transition-all duration-200 hover-scale"
           >
-            Сохранить запись
+            {isEditing ? 'Обновить запись' : 'Сохранить запись'}
           </Button>
         </Card>
         </div>
