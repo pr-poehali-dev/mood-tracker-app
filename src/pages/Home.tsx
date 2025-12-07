@@ -14,7 +14,7 @@ interface MoodEntry {
 }
 
 const Home = () => {
-  const [isFormAvailable, setIsFormAvailable] = useState(false);
+  const [isFormAvailable, setIsFormAvailable] = useState(true);
   const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
   const [mood, setMood] = useState('');
   const [emotions, setEmotions] = useState('');
@@ -33,10 +33,8 @@ const Home = () => {
 
   useEffect(() => {
     initializeTestData();
-    checkTimeAndSubmission();
+    checkSubmission();
     checkNotificationPermission();
-    const interval = setInterval(checkTimeAndSubmission, 60000);
-    return () => clearInterval(interval);
   }, []);
 
   const initializeTestData = () => {
@@ -131,13 +129,8 @@ const Home = () => {
     }, timeUntilNotification);
   };
 
-  const checkTimeAndSubmission = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    const isAvailable = hours >= 18 && hours <= 23;
-    setIsFormAvailable(isAvailable);
-
-    const today = now.toISOString().split('T')[0];
+  const checkSubmission = () => {
+    const today = new Date().toISOString().split('T')[0];
     const entries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
     const todayEntry = entries.find((entry: MoodEntry) => entry.date === today);
     setHasSubmittedToday(!!todayEntry);
@@ -190,38 +183,7 @@ const Home = () => {
     setHasSubmittedToday(false);
   };
 
-  if (!isFormAvailable) {
-    return (
-      <>
-        <div className="min-h-screen flex items-center justify-center p-6 pb-24 bg-white">
-          <Card className="max-w-md w-full p-8 text-center animate-fade-in border-gray-200">
-            <Icon name="Clock" size={40} className="mx-auto mb-4 text-gray-400" />
-            <h2 className="text-xl font-normal mb-3 text-gray-900">Форма пока недоступна</h2>
-            <p className="text-gray-600 text-sm leading-relaxed mb-6">
-              Возвращайся с 18:00 до 23:59
-            </p>
-            {!notificationsEnabled && (
-              <Button
-                onClick={requestNotificationPermission}
-                variant="outline"
-                className="text-sm border-gray-300 hover:bg-gray-50"
-              >
-                <Icon name="Bell" size={16} className="mr-2" />
-                Включить уведомления
-              </Button>
-            )}
-            {notificationsEnabled && (
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                <Icon name="Check" size={14} />
-                Уведомления включены
-              </div>
-            )}
-          </Card>
-        </div>
-        <Navigation />
-      </>
-    );
-  }
+
 
   if (hasSubmittedToday && !isEditing) {
     return (
