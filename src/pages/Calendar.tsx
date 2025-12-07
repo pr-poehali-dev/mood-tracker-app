@@ -237,24 +237,54 @@ const Calendar = () => {
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Calendar */}
           <Card className="p-6 animate-fade-in">
-            <div className="flex items-center justify-between mb-6">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => changeMonth(-1)}
-                className="rounded-full hover:bg-purple-100"
-              >
-                <Icon name="ChevronLeft" size={20} />
-              </Button>
-              <h2 className="text-xl font-medium text-gray-800 capitalize">{monthName}</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => changeMonth(1)}
-                className="rounded-full hover:bg-purple-100"
-              >
-                <Icon name="ChevronRight" size={20} />
-              </Button>
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => changeMonth(-1)}
+                  className="rounded-full hover:bg-purple-100"
+                >
+                  <Icon name="ChevronLeft" size={20} />
+                </Button>
+                <h2 className="text-xl font-medium text-gray-800 capitalize">{monthName}</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => changeMonth(1)}
+                  className="rounded-full hover:bg-purple-100"
+                >
+                  <Icon name="ChevronRight" size={20} />
+                </Button>
+              </div>
+              
+              <div className="flex gap-2 justify-center flex-wrap">
+                {[2024, 2025].map((yearOption) => (
+                  <Button
+                    key={yearOption}
+                    variant={year === yearOption ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentMonth(new Date(yearOption, month, 1))}
+                    className="rounded-xl"
+                  >
+                    {yearOption}
+                  </Button>
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-6 gap-2">
+                {['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'].map((monthLabel, idx) => (
+                  <Button
+                    key={idx}
+                    variant={month === idx ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setCurrentMonth(new Date(year, idx, 1))}
+                    className={`rounded-xl text-xs ${month === idx ? 'bg-gradient-to-r from-purple-400 to-pink-400' : 'hover:bg-purple-50'}`}
+                  >
+                    {monthLabel}
+                  </Button>
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-7 gap-2">{renderCalendar()}</div>
