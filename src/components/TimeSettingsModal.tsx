@@ -26,8 +26,8 @@ const TimeSettingsModal = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6" onClick={onClose}>
-      <Card className="max-w-md w-full p-6 border-gray-200" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6 animate-backdrop-in" onClick={onClose}>
+      <Card className="max-w-md w-full p-6 border-gray-200 animate-modal-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-normal text-gray-900">Настройки времени</h2>
           <button onClick={onClose} className="hover:bg-gray-100 rounded-lg p-1">
