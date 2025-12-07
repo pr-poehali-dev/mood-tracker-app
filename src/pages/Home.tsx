@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import Navigation from '@/components/Navigation';
+import TimeSettingsModal from '@/components/TimeSettingsModal';
+import QuestionSettingsModal from '@/components/QuestionSettingsModal';
+import MoodForm from '@/components/MoodForm';
 
 interface MoodEntry {
   id: string;
@@ -50,14 +52,6 @@ const Home = () => {
     question1: 'Какие эмоции отслеживались в течение дня?',
     question2: 'Что бы ты сегодня хотела запомнить?',
   });
-
-  const moods = [
-    { emoji: '😊', label: 'Радостное', value: 'happy' },
-    { emoji: '😌', label: 'Спокойное', value: 'calm' },
-    { emoji: '😔', label: 'Грустное', value: 'sad' },
-    { emoji: '😰', label: 'Тревожное', value: 'anxious' },
-    { emoji: '😤', label: 'Раздражённое', value: 'angry' },
-  ];
 
   useEffect(() => {
     initializeTestData();
@@ -291,7 +285,22 @@ const Home = () => {
     setHasSubmittedToday(false);
   };
 
-
+  if (!isFormAvailable) {
+    return (
+      <>
+        <div className="min-h-screen flex items-center justify-center p-6 pb-24 bg-white">
+          <Card className="max-w-md w-full p-8 text-center animate-fade-in border-gray-200">
+            <Icon name="Clock" size={40} className="mx-auto mb-4 text-gray-400" />
+            <h2 className="text-xl font-normal mb-3 text-gray-900">Форма пока недоступна</h2>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Доступна с {timeSettings.startHour}:00 до {timeSettings.endHour}:59
+            </p>
+          </Card>
+        </div>
+        <Navigation />
+      </>
+    );
+  }
 
   if (hasSubmittedToday && !isEditing) {
     return (
@@ -318,221 +327,38 @@ const Home = () => {
     );
   }
 
-  if (!isFormAvailable) {
-    return (
-      <>
-        <div className="min-h-screen flex items-center justify-center p-6 pb-24 bg-white">
-          <Card className="max-w-md w-full p-8 text-center animate-fade-in border-gray-200">
-            <Icon name="Clock" size={40} className="mx-auto mb-4 text-gray-400" />
-            <h2 className="text-xl font-normal mb-3 text-gray-900">Форма пока недоступна</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              Доступна с {timeSettings.startHour}:00 до {timeSettings.endHour}:59
-            </p>
-          </Card>
-        </div>
-        <Navigation />
-      </>
-    );
-  }
-
   return (
     <>
       <div className="min-h-screen p-6 pb-24 bg-white">
-        <div className="max-w-2xl mx-auto animate-fade-in">
-        <div className="text-center mb-10 relative">
-          <div className="absolute right-0 top-0 flex gap-2">
-            <button
-              onClick={() => setShowTimeSettings(true)}
-              className="p-2 hover:bg-gray-100 border border-gray-200 transition-all"
-            >
-              <Icon name="Clock" size={20} className="text-gray-600" />
-            </button>
-            <button
-              onClick={() => setShowQuestionSettings(true)}
-              className="p-2 hover:bg-gray-100 border border-gray-200 transition-all"
-            >
-              <Icon name="Settings" size={20} className="text-gray-600" />
-            </button>
-          </div>
-          <h1 className="text-2xl font-normal mb-2 text-gray-900">Как прошёл твой день?</h1>
-          <p className="text-gray-500 text-sm">Поделись своими эмоциями</p>
-        </div>
+        <MoodForm
+          mood={mood}
+          emotions={emotions}
+          memory={memory}
+          isEditing={isEditing}
+          currentQuestions={currentQuestions}
+          onMoodChange={setMood}
+          onEmotionsChange={setEmotions}
+          onMemoryChange={setMemory}
+          onSubmit={handleSubmit}
+          onOpenTimeSettings={() => setShowTimeSettings(true)}
+          onOpenQuestionSettings={() => setShowQuestionSettings(true)}
+        />
 
-        <Card className="p-8 space-y-8 border-gray-200">
-          <div>
-            <label className="block text-sm font-normal mb-4 text-gray-600">
-              Какое сегодня настроение?
-            </label>
-            <div className="grid grid-cols-5 gap-2">
-              {moods.map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() => setMood(item.value)}
-                  className={`p-3 border transition-all ${
-                    mood === item.value
-                      ? 'border-gray-900 bg-gray-50'
-                      : 'border-gray-200 bg-white hover:border-gray-400'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">{item.emoji}</div>
-                  <div className="text-xs text-gray-500">{item.label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
+        <TimeSettingsModal
+          show={showTimeSettings}
+          timeSettings={timeSettings}
+          onClose={() => setShowTimeSettings(false)}
+          onSave={saveTimeSettings}
+          onUpdate={setTimeSettings}
+        />
 
-          <div>
-            <label className="block text-sm font-normal mb-4 text-gray-600">
-              {currentQuestions.question1}
-            </label>
-            <Textarea
-              value={emotions}
-              onChange={(e) => setEmotions(e.target.value)}
-              placeholder="Радость, спокойствие, волнение..."
-              className="min-h-[100px] text-sm resize-none border-gray-200 focus:border-gray-400"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-normal mb-4 text-gray-600">
-              {currentQuestions.question2}
-            </label>
-            <Textarea
-              value={memory}
-              onChange={(e) => setMemory(e.target.value)}
-              placeholder="Запиши момент, который хочешь сохранить..."
-              className="min-h-[100px] text-sm resize-none border-gray-200 focus:border-gray-400"
-            />
-          </div>
-
-          <Button
-            onClick={handleSubmit}
-            className="w-full h-11 text-sm bg-gray-900 hover:bg-gray-800 text-white"
-          >
-            {isEditing ? 'Обновить' : 'Сохранить'}
-          </Button>
-        </Card>
-        </div>
-
-        {/* Time Settings Modal */}
-        {showTimeSettings && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6" onClick={() => setShowTimeSettings(false)}>
-            <Card className="max-w-md w-full p-6 border-gray-200" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-normal text-gray-900">Настройки времени</h2>
-                <button onClick={() => setShowTimeSettings(false)} className="hover:bg-gray-100 p-1">
-                  <Icon name="X" size={20} className="text-gray-600" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm text-gray-600">Ограничить время заполнения</label>
-                  <button
-                    onClick={() => setTimeSettings({ ...timeSettings, enabled: !timeSettings.enabled })}
-                    className={`w-12 h-6 border transition-all relative ${
-                      timeSettings.enabled ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white absolute top-0.5 transition-all ${
-                      timeSettings.enabled ? 'right-0.5' : 'left-0.5'
-                    }`} />
-                  </button>
-                </div>
-
-                {timeSettings.enabled && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-2">С (час)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="23"
-                        value={timeSettings.startHour}
-                        onChange={(e) => setTimeSettings({ ...timeSettings, startHour: parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-2 border border-gray-200 text-sm focus:border-gray-400 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-2">До (час)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="23"
-                        value={timeSettings.endHour}
-                        onChange={(e) => setTimeSettings({ ...timeSettings, endHour: parseInt(e.target.value) || 23 })}
-                        className="w-full px-3 py-2 border border-gray-200 text-sm focus:border-gray-400 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <Button onClick={saveTimeSettings} className="w-full bg-gray-900 hover:bg-gray-800 text-white">
-                  Сохранить
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Question Settings Modal */}
-        {showQuestionSettings && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6" onClick={() => setShowQuestionSettings(false)}>
-            <Card className="max-w-md w-full p-6 border-gray-200" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-normal text-gray-900">Настройки вопросов</h2>
-                <button onClick={() => setShowQuestionSettings(false)} className="hover:bg-gray-100 p-1">
-                  <Icon name="X" size={20} className="text-gray-600" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm text-gray-600">Случайные вопросы</label>
-                  <button
-                    onClick={() => setQuestionSettings({ ...questionSettings, useRandom: !questionSettings.useRandom })}
-                    className={`w-12 h-6 border transition-all relative ${
-                      questionSettings.useRandom ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 bg-white absolute top-0.5 transition-all ${
-                      questionSettings.useRandom ? 'right-0.5' : 'left-0.5'
-                    }`} />
-                  </button>
-                </div>
-
-                {!questionSettings.useRandom && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-2">Вопрос 1</label>
-                      <Textarea
-                        value={questionSettings.question1}
-                        onChange={(e) => setQuestionSettings({ ...questionSettings, question1: e.target.value })}
-                        className="min-h-[60px] text-sm resize-none border-gray-200 focus:border-gray-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-2">Вопрос 2</label>
-                      <Textarea
-                        value={questionSettings.question2}
-                        onChange={(e) => setQuestionSettings({ ...questionSettings, question2: e.target.value })}
-                        className="min-h-[60px] text-sm resize-none border-gray-200 focus:border-gray-400"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {questionSettings.useRandom && (
-                  <p className="text-xs text-gray-500">Вопросы будут меняться каждый раз случайным образом</p>
-                )}
-
-                <Button onClick={saveQuestionSettings} className="w-full bg-gray-900 hover:bg-gray-800 text-white">
-                  Сохранить
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+        <QuestionSettingsModal
+          show={showQuestionSettings}
+          questionSettings={questionSettings}
+          onClose={() => setShowQuestionSettings(false)}
+          onSave={saveQuestionSettings}
+          onUpdate={setQuestionSettings}
+        />
       </div>
       <Navigation />
     </>
