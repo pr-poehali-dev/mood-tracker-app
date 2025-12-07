@@ -16,6 +16,7 @@ const Calendar = () => {
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<MoodEntry | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const moodEmojis: Record<string, string> = {
     happy: '😊',
@@ -175,6 +176,16 @@ const Calendar = () => {
     setSelectedEntry(null);
   };
 
+  const handleDelete = () => {
+    if (!selectedEntry) return;
+    
+    const updatedEntries = entries.filter((entry) => entry.id !== selectedEntry.id);
+    localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+    setEntries(updatedEntries);
+    setSelectedEntry(null);
+    setShowDeleteConfirm(false);
+  };
+
   const renderCalendar = () => {
     const days = [];
     const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -301,6 +312,15 @@ const Calendar = () => {
                   <h3 className="text-xs font-normal text-gray-500 mb-2">Что запомнилось</h3>
                   <p className="text-sm text-gray-900 leading-relaxed">{selectedEntry.memory}</p>
                 </div>
+
+                <Button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  variant="outline"
+                  className="w-full text-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                >
+                  <Icon name="Trash2" size={16} className="mr-2" />
+                  Удалить запись
+                </Button>
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center py-12">
@@ -464,6 +484,39 @@ const Calendar = () => {
         )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6 animate-backdrop-in" onClick={() => setShowDeleteConfirm(false)}>
+          <Card className="max-w-md w-full p-6 border-gray-200 animate-modal-in" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-normal text-gray-900">Удалить запись?</h2>
+              <button onClick={() => setShowDeleteConfirm(false)} className="hover:bg-gray-100 rounded-lg p-1">
+                <Icon name="X" size={20} className="text-gray-600" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Запись от {selectedEntry && formatDate(selectedEntry.date)} будет удалена без возможности восстановления.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowDeleteConfirm(false)}
+                variant="outline"
+                className="flex-1 border-gray-300 hover:bg-gray-50"
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleDelete}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                Удалить
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       <Navigation />
     </>
   );
